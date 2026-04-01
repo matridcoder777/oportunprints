@@ -1,7 +1,7 @@
 const documents = [
   {
     id: 'doc-001',
-    title: 'Q4 2024 Sales Invoice #10042',
+    title: 'Q2 2025 Sales Invoice #10042',
     type: 'invoice',
     status: 'active',
     pages: 2,
@@ -51,7 +51,7 @@ const documents = [
   },
   {
     id: 'doc-006',
-    title: 'FY2023 Annual Financial Report',
+    title: 'FY2024 Annual Financial Report',
     type: 'invoice',
     status: 'archived',
     pages: 34,
