@@ -1,36 +1,34 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const { documents, templates, printJobs } = require('./data/mockData');
-const documentsRouter = require('./routes/documents');
-const templatesRouter = require('./routes/templates');
-const printJobsRouter = require('./routes/printJobs');
+
+const authRoutes = require('./routes/auth');
+const usersRoutes = require('./routes/users');
+const storesRoutes = require('./routes/stores');
+const productsRoutes = require('./routes/products');
+const ordersRoutes = require('./routes/orders');
+const cartRoutes = require('./routes/cart');
 
 const app = express();
-const PORT = process.env.PORT || 3001;
 
-app.use(cors());
+const allowedOrigin = process.env.CORS_ORIGIN || '*';
+app.use(cors({ origin: allowedOrigin }));
 app.use(express.json());
 
-app.use('/api/documents', documentsRouter);
-app.use('/api/templates', templatesRouter);
-app.use('/api/print-jobs', printJobsRouter);
-
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date() });
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-app.get('/api/stats', (req, res) => {
-  res.json({
-    totalDocuments: documents.length,
-    totalTemplates: templates.length,
-    pendingJobs: printJobs.filter((j) => j.status === 'pending').length,
-    processingJobs: printJobs.filter((j) => j.status === 'processing').length,
-    completedJobs: printJobs.filter((j) => j.status === 'completed').length,
-    failedJobs: printJobs.filter((j) => j.status === 'failed').length,
-  });
-});
+app.use('/api/auth', authRoutes);
+app.use('/api/users', usersRoutes);
+app.use('/api/stores', storesRoutes);
+app.use('/api/products', productsRoutes);
+app.use('/api/orders', ordersRoutes);
+app.use('/api/cart', cartRoutes);
 
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+module.exports = app;
