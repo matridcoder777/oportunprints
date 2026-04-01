@@ -52,7 +52,7 @@ app.get('/api/health', (req, res) => {
 });
 
 app.use('/api/auth/login', loginLimiter);
-app.use('/api/auth', authRoutes);
+app.use('/api/auth', apiLimiter, authRoutes);
 app.use('/api/users', apiLimiter, usersRoutes);
 app.use('/api/stores', apiLimiter, storesRoutes);
 app.use('/api/products', apiLimiter, productsRoutes);
