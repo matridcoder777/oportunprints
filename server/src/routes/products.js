@@ -77,7 +77,13 @@ router.put('/:id', authMiddleware, roleMiddleware('admin'), (req, res) => {
   const { name, sku, category, campaign, storeType, partner, language, status, imageUrl, internalNotes, description } = req.body;
   const updates = {};
   if (name !== undefined) updates.name = name;
-  if (sku !== undefined) updates.sku = sku;
+  if (sku !== undefined) {
+    const skuConflict = products.find((p) => p.sku === sku && p.id !== req.params.id);
+    if (skuConflict) {
+      return res.status(409).json({ message: 'SKU already in use by another product' });
+    }
+    updates.sku = sku;
+  }
   if (category !== undefined) updates.category = category;
   if (campaign !== undefined) updates.campaign = campaign;
   if (storeType !== undefined) updates.storeType = storeType;

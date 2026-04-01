@@ -122,7 +122,7 @@ router.put('/:id', authMiddleware, roleMiddleware('admin'), (req, res) => {
     updates.items = enrichedItems;
   }
 
-  orders[index] = { ...orders[index], ...updates, id: orders[index].id, updatedAt: new Date().toISOString() };
+  orders[index] = { ...orders[index], ...updates, updatedAt: new Date().toISOString() };
   return res.json(orders[index]);
 });
 

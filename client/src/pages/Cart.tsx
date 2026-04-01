@@ -179,6 +179,7 @@ export default function Cart() {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [localQty, setLocalQty] = useState<Record<string, number>>({});
 
   useEffect(() => {
     fetchCart();
@@ -190,8 +191,22 @@ export default function Cart() {
     setSelectedStore(store);
   }, [selectedStoreId, stores]);
 
-  const handleQtyChange = async (productId: string, qty: number) => {
+  useEffect(() => {
+    const map: Record<string, number> = {};
+    cart.forEach((item) => { map[item.productId] = item.quantity; });
+    setLocalQty(map);
+  }, [cart]);
+
+  const handleQtyChange = (productId: string, qty: number) => {
     if (qty < 1) return;
+    setLocalQty((prev) => ({ ...prev, [productId]: qty }));
+  };
+
+  const handleQtyBlur = async (productId: string) => {
+    const qty = localQty[productId];
+    if (!qty || qty < 1) return;
+    const original = cart.find((i) => i.productId === productId)?.quantity;
+    if (qty === original) return;
     setUpdatingId(productId);
     try {
       await updateQuantity(productId, qty);
@@ -274,7 +289,7 @@ export default function Cart() {
                         type="number"
                         min={1}
                         max={999}
-                        value={item.quantity}
+                        value={localQty[item.productId] ?? item.quantity}
                         style={styles.qtyInput}
                         disabled={updatingId === item.productId}
                         onChange={(e) =>
@@ -283,6 +298,7 @@ export default function Cart() {
                             parseInt(e.target.value, 10) || 1
                           )
                         }
+                        onBlur={() => handleQtyBlur(item.productId)}
                       />
                     </td>
                     <td style={styles.td}>
