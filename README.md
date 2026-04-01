@@ -1,6 +1,6 @@
 # Oportun Retail Print Portal
 
-A full-stack web application for managing and printing retail documents at Oportun store locations. Staff can browse documents, select print templates, submit print jobs, and monitor the print queue — all from a clean, responsive interface.
+A full-stack web application for ordering branded print materials at Oportun retail store locations. Authorized staff can browse products, manage a shopping cart, submit orders for approval, and track order history — all from a clean, dark-themed responsive interface.
 
 ---
 
@@ -53,38 +53,51 @@ The Vite dev server proxies all `/api` requests to the Express backend, so no CO
 
 ## API Endpoints
 
-### Health & Stats
-| Method | Path         | Description                     |
-|--------|--------------|---------------------------------|
-| GET    | /api/health  | Health check                    |
-| GET    | /api/stats   | Aggregate counts for dashboard  |
+### Auth
+| Method | Path           | Description                          |
+|--------|----------------|--------------------------------------|
+| POST   | /api/auth/login | Authenticate and receive JWT token  |
+| GET    | /api/auth/me    | Get current authenticated user      |
 
-### Documents
-| Method | Path                  | Description             |
-|--------|-----------------------|-------------------------|
-| GET    | /api/documents        | List all documents      |
-| GET    | /api/documents/:id    | Get a single document   |
-| POST   | /api/documents        | Create a document       |
-| PUT    | /api/documents/:id    | Update a document       |
-| DELETE | /api/documents/:id    | Delete a document       |
+### Users
+| Method | Path             | Description          |
+|--------|------------------|----------------------|
+| GET    | /api/users       | List all users       |
+| POST   | /api/users       | Create a user        |
+| PUT    | /api/users/:id   | Update a user        |
+| DELETE | /api/users/:id   | Delete a user        |
 
-### Templates
-| Method | Path                  | Description             |
-|--------|-----------------------|-------------------------|
-| GET    | /api/templates        | List all templates      |
-| GET    | /api/templates/:id    | Get a single template   |
-| POST   | /api/templates        | Create a template       |
-| PUT    | /api/templates/:id    | Update a template       |
-| DELETE | /api/templates/:id    | Delete a template       |
+### Stores
+| Method | Path              | Description          |
+|--------|-------------------|----------------------|
+| GET    | /api/stores       | List all stores      |
+| POST   | /api/stores       | Create a store       |
+| PUT    | /api/stores/:id   | Update a store       |
+| DELETE | /api/stores/:id   | Delete a store       |
 
-### Print Jobs
-| Method | Path                        | Description                      |
-|--------|-----------------------------|----------------------------------|
-| GET    | /api/print-jobs             | List all jobs (filter: ?status=) |
-| GET    | /api/print-jobs/:id         | Get a single job                 |
-| POST   | /api/print-jobs             | Submit a new print job           |
-| PUT    | /api/print-jobs/:id/status  | Update job status                |
-| DELETE | /api/print-jobs/:id         | Delete a print job               |
+### Products
+| Method | Path                | Description           |
+|--------|---------------------|-----------------------|
+| GET    | /api/products       | List / search products|
+| POST   | /api/products       | Create a product      |
+| PUT    | /api/products/:id   | Update a product      |
+| DELETE | /api/products/:id   | Delete a product      |
+
+### Cart
+| Method | Path                      | Description                   |
+|--------|---------------------------|-------------------------------|
+| GET    | /api/cart                 | Get current user's cart       |
+| POST   | /api/cart/items           | Add item to cart              |
+| PUT    | /api/cart/items/:productId| Update item quantity          |
+| DELETE | /api/cart/items/:productId| Remove item from cart         |
+| DELETE | /api/cart                 | Clear entire cart             |
+
+### Orders
+| Method | Path                       | Description                  |
+|--------|----------------------------|------------------------------|
+| GET    | /api/orders                | List orders (filterable)     |
+| POST   | /api/orders                | Place a new order            |
+| PUT    | /api/orders/:id/status     | Update order status (admin)  |
 
 ---
 
@@ -97,15 +110,17 @@ oportunprints/
 ├── README.md
 ├── server/                   # Express backend
 │   ├── package.json
-│   ├── .env.example
 │   └── src/
 │       ├── index.js          # App entry point
 │       ├── data/
-│       │   └── mockData.js   # In-memory sample data
+│       │   └── store.js      # In-memory data store
 │       └── routes/
-│           ├── documents.js
-│           ├── templates.js
-│           └── printJobs.js
+│           ├── auth.js
+│           ├── users.js
+│           ├── stores.js
+│           ├── products.js
+│           ├── orders.js
+│           └── cart.js
 └── client/                   # React + TypeScript frontend
     ├── package.json
     ├── vite.config.ts
@@ -115,14 +130,27 @@ oportunprints/
     └── src/
         ├── main.tsx
         ├── App.tsx
+        ├── i18n.ts           # i18next config (EN + ES stub)
         ├── api/
-        │   └── client.ts     # Axios instance & typed API calls
+        │   └── client.ts     # Axios instance with Bearer token interceptor
+        ├── types/
+        │   └── index.ts      # TypeScript interfaces
+        ├── context/
+        │   ├── AuthContext.tsx
+        │   └── CartContext.tsx
         ├── components/
         │   ├── Navbar.tsx
-        │   └── Sidebar.tsx
+        │   ├── ProductCard.tsx
+        │   ├── Filters.tsx
+        │   └── OrderTable.tsx
         └── pages/
+            ├── Login.tsx
             ├── Dashboard.tsx
-            ├── Documents.tsx
-            ├── Templates.tsx
-            └── PrintQueue.tsx
+            ├── Products.tsx
+            ├── Cart.tsx
+            ├── Orders.tsx
+            ├── AdminPanel.tsx
+            ├── Support.tsx
+            ├── StoreProfile.tsx
+            └── NotFound.tsx
 ```
