@@ -1,173 +1,229 @@
-import { useEffect, useState } from 'react';
-import { fetchStats, fetchPrintJobs, Stats, PrintJob } from '../api/client';
+import { useAuth } from '../context/AuthContext';
 
-const statusColors: Record<string, string> = {
-  pending: '#FF9800',
-  processing: '#2196F3',
-  completed: '#4CAF50',
-  failed: '#F44336',
+const styles: Record<string, React.CSSProperties> = {
+  page: {
+    padding: '32px 40px',
+    maxWidth: 1200,
+    margin: '0 auto',
+  },
+  banner: {
+    background: 'linear-gradient(135deg, rgba(34,197,94,0.15), rgba(34,197,94,0.05))',
+    border: '1px solid rgba(34,197,94,0.3)',
+    borderRadius: 16,
+    padding: '28px 32px',
+    marginBottom: 32,
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  welcomeText: {
+    color: '#fff',
+    fontSize: 28,
+    fontWeight: 700,
+    margin: 0,
+  },
+  dateText: {
+    color: '#9ca3af',
+    fontSize: 14,
+    margin: '6px 0 0',
+  },
+  oportun: {
+    color: '#22c55e',
+    fontSize: 48,
+    fontWeight: 900,
+    letterSpacing: '-2px',
+    opacity: 0.3,
+  },
+  row: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: 24,
+    marginBottom: 24,
+  },
+  card: {
+    background: 'rgba(255,255,255,0.05)',
+    backdropFilter: 'blur(10px)',
+    border: '1px solid rgba(255,255,255,0.1)',
+    borderRadius: 12,
+    padding: 24,
+  },
+  cardTitle: {
+    color: '#22c55e',
+    fontSize: 15,
+    fontWeight: 700,
+    margin: '0 0 16px',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+  },
+  cardText: {
+    color: '#d1d5db',
+    fontSize: 14,
+    lineHeight: 1.6,
+    margin: 0,
+  },
+  bulletList: {
+    color: '#d1d5db',
+    fontSize: 14,
+    lineHeight: 1.8,
+    paddingLeft: 20,
+    margin: 0,
+  },
+  bottomRow: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr 1fr',
+    gap: 24,
+  },
+  infoCard: {
+    background: 'rgba(255,255,255,0.05)',
+    border: '1px solid rgba(255,255,255,0.1)',
+    borderRadius: 12,
+    padding: 24,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 12,
+  },
+  infoIcon: {
+    fontSize: 36,
+    marginBottom: 4,
+  },
+  infoTitle: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: 700,
+    margin: 0,
+  },
+  infoText: {
+    color: '#9ca3af',
+    fontSize: 13,
+    lineHeight: 1.5,
+    margin: 0,
+  },
+  videoBox: {
+    background: 'rgba(0,0,0,0.3)',
+    border: '2px dashed rgba(255,255,255,0.1)',
+    borderRadius: 8,
+    height: 120,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: '#6b7280',
+    fontSize: 13,
+    flexDirection: 'column',
+    gap: 8,
+  },
+  announcement: {
+    borderBottom: '1px solid rgba(255,255,255,0.07)',
+    paddingBottom: 10,
+    marginBottom: 10,
+  },
+  annTitle: {
+    color: '#e5e7eb',
+    fontSize: 13,
+    fontWeight: 600,
+    margin: '0 0 4px',
+  },
+  annDate: {
+    color: '#6b7280',
+    fontSize: 11,
+    margin: 0,
+  },
 };
 
-const Dashboard: React.FC = () => {
-  const [stats, setStats] = useState<Stats | null>(null);
-  const [recentJobs, setRecentJobs] = useState<PrintJob[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+const ANNOUNCEMENTS = [
+  { title: 'Q3 Campaign Materials Now Available', date: 'Jul 1, 2025' },
+  { title: 'New Store Type: Kiosk Templates Added', date: 'Jun 20, 2025' },
+  { title: 'System Maintenance Window – Jun 28', date: 'Jun 15, 2025' },
+];
 
-  useEffect(() => {
-    Promise.all([fetchStats(), fetchPrintJobs()])
-      .then(([s, jobs]) => {
-        setStats(s);
-        setRecentJobs(jobs.slice(0, 5));
-      })
-      .catch(() => setError('Failed to load dashboard data. Is the server running?'))
-      .finally(() => setLoading(false));
-  }, []);
-
-  const pageStyle: React.CSSProperties = { padding: '0' };
-
-  const headingStyle: React.CSSProperties = {
-    marginBottom: '4px',
-    fontSize: '24px',
-    fontWeight: 700,
-    color: '#1a1a2e',
-  };
-
-  const subtitleStyle: React.CSSProperties = {
-    color: '#666',
-    marginBottom: '28px',
-    fontSize: '14px',
-  };
-
-  const gridStyle: React.CSSProperties = {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-    gap: '20px',
-    marginBottom: '36px',
-  };
-
-  const cardStyle = (accentColor: string): React.CSSProperties => ({
-    background: '#fff',
-    borderRadius: '10px',
-    padding: '24px 20px',
-    borderLeft: `5px solid ${accentColor}`,
-    boxShadow: '0 2px 8px rgba(0,0,0,0.07)',
+export default function Dashboard() {
+  const { user } = useAuth();
+  const today = new Date().toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
   });
-
-  const cardValueStyle: React.CSSProperties = {
-    fontSize: '40px',
-    fontWeight: 800,
-    lineHeight: 1,
-    marginBottom: '8px',
-  };
-
-  const cardLabelStyle: React.CSSProperties = {
-    fontSize: '13px',
-    color: '#888',
-    fontWeight: 500,
-    textTransform: 'uppercase',
-    letterSpacing: '0.5px',
-  };
-
-  const sectionTitleStyle: React.CSSProperties = {
-    fontSize: '18px',
-    fontWeight: 700,
-    color: '#1a1a2e',
-    marginBottom: '16px',
-  };
-
-  const tableStyle: React.CSSProperties = {
-    width: '100%',
-    borderCollapse: 'collapse',
-    background: '#fff',
-    borderRadius: '10px',
-    overflow: 'hidden',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.07)',
-  };
-
-  const thStyle: React.CSSProperties = {
-    background: '#f8f9fa',
-    padding: '12px 16px',
-    textAlign: 'left',
-    fontSize: '12px',
-    fontWeight: 700,
-    color: '#555',
-    textTransform: 'uppercase',
-    letterSpacing: '0.5px',
-    borderBottom: '2px solid #eee',
-  };
-
-  const tdStyle: React.CSSProperties = {
-    padding: '12px 16px',
-    fontSize: '14px',
-    borderBottom: '1px solid #f0f0f0',
-    color: '#333',
-  };
-
-  const badgeStyle = (status: string): React.CSSProperties => ({
-    display: 'inline-block',
-    padding: '3px 10px',
-    borderRadius: '12px',
-    fontSize: '12px',
-    fontWeight: 600,
-    background: `${statusColors[status] || '#999'}22`,
-    color: statusColors[status] || '#999',
-  });
-
-  if (loading) return <div style={{ padding: '40px', color: '#666' }}>Loading...</div>;
-  if (error) return <div style={{ padding: '40px', color: '#F44336' }}>{error}</div>;
 
   return (
-    <div style={pageStyle}>
-      <h1 style={headingStyle}>Dashboard</h1>
-      <p style={subtitleStyle}>Welcome to Oportun Print Portal</p>
+    <div style={styles.page}>
+      <div style={styles.banner}>
+        <div>
+          <p style={styles.welcomeText}>
+            Welcome back, {user?.firstName ?? 'User'}!
+          </p>
+          <p style={styles.dateText}>{today}</p>
+        </div>
+        <span style={styles.oportun}>O</span>
+      </div>
 
-      <div style={gridStyle}>
-        <div style={cardStyle('#2196F3')}>
-          <div style={{ ...cardValueStyle, color: '#2196F3' }}>{stats?.totalDocuments}</div>
-          <div style={cardLabelStyle}>Total Documents</div>
+      <div style={styles.row}>
+        <div style={styles.card}>
+          <p style={styles.cardTitle}>Important Ordering Guidelines</p>
+          <ul style={styles.bulletList}>
+            <li>All orders must be placed at least 5 business days in advance.</li>
+            <li>Select your store location before submitting an order.</li>
+            <li>Orders over 500 units require manager approval.</li>
+            <li>Retired products cannot be re-ordered.</li>
+            <li>Contact support for bulk or custom print requests.</li>
+            <li>Review your cart carefully before final submission.</li>
+          </ul>
         </div>
-        <div style={cardStyle('#9C27B0')}>
-          <div style={{ ...cardValueStyle, color: '#9C27B0' }}>{stats?.totalTemplates}</div>
-          <div style={cardLabelStyle}>Print Templates</div>
-        </div>
-        <div style={cardStyle('#FF9800')}>
-          <div style={{ ...cardValueStyle, color: '#FF9800' }}>{stats?.pendingJobs}</div>
-          <div style={cardLabelStyle}>Pending Jobs</div>
-        </div>
-        <div style={cardStyle('#4CAF50')}>
-          <div style={{ ...cardValueStyle, color: '#4CAF50' }}>{stats?.completedJobs}</div>
-          <div style={cardLabelStyle}>Completed Jobs</div>
+
+        <div style={styles.card}>
+          <p style={styles.cardTitle}>About This Portal</p>
+          <p style={styles.cardText}>
+            The Oportun Retail Print Portal enables authorized store staff to
+            browse, select, and order branded print materials for their
+            locations. All materials are designed to meet Oportun's brand
+            standards.
+          </p>
+          <br />
+          <p style={styles.cardText}>
+            Use the navigation above to browse products, manage your cart,
+            track orders, and view your store profile. If you need assistance,
+            visit the Support section.
+          </p>
         </div>
       </div>
 
-      <div style={sectionTitleStyle}>Recent Print Jobs</div>
-      <table style={tableStyle}>
-        <thead>
-          <tr>
-            <th style={thStyle}>Document</th>
-            <th style={thStyle}>Template</th>
-            <th style={thStyle}>Status</th>
-            <th style={thStyle}>Copies</th>
-            <th style={thStyle}>Submitted</th>
-          </tr>
-        </thead>
-        <tbody>
-          {recentJobs.map((job) => (
-            <tr key={job.id}>
-              <td style={tdStyle}>{job.documentTitle}</td>
-              <td style={tdStyle}>{job.templateName}</td>
-              <td style={tdStyle}>
-                <span style={badgeStyle(job.status)}>{job.status}</span>
-              </td>
-              <td style={tdStyle}>{job.copies}</td>
-              <td style={tdStyle}>{new Date(job.submittedAt).toLocaleDateString()}</td>
-            </tr>
+      <div style={styles.bottomRow}>
+        <div style={styles.infoCard}>
+          <span style={styles.infoIcon}>🎬</span>
+          <p style={styles.infoTitle}>Video Resources</p>
+          <div style={styles.videoBox}>
+            <span style={{ fontSize: 28 }}>▶</span>
+            <span>Training videos coming soon</span>
+          </div>
+        </div>
+
+        <div style={styles.infoCard}>
+          <span style={styles.infoIcon}>📞</span>
+          <p style={styles.infoTitle}>Contact Information</p>
+          <p style={styles.infoText}>
+            <strong style={{ color: '#d1d5db' }}>Email:</strong>{' '}
+            support@oportun.com
+          </p>
+          <p style={styles.infoText}>
+            <strong style={{ color: '#d1d5db' }}>Phone:</strong>{' '}
+            1-800-OPORTUN
+          </p>
+          <p style={styles.infoText}>
+            <strong style={{ color: '#d1d5db' }}>Hours:</strong>{' '}
+            Mon–Fri, 8am–6pm PT
+          </p>
+        </div>
+
+        <div style={styles.infoCard}>
+          <span style={styles.infoIcon}>📢</span>
+          <p style={styles.infoTitle}>Announcements</p>
+          {ANNOUNCEMENTS.map((a) => (
+            <div key={a.title} style={styles.announcement}>
+              <p style={styles.annTitle}>{a.title}</p>
+              <p style={styles.annDate}>{a.date}</p>
+            </div>
           ))}
-        </tbody>
-      </table>
+        </div>
+      </div>
     </div>
   );
-};
-
-export default Dashboard;
+}
